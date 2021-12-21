@@ -1,47 +1,43 @@
 using Microsoft.AspNetCore.Mvc;
 using ToDoList.Models;
 using System.Collections.Generic;
-
+using System.Linq;
 
 namespace ToDoList.Controllers
 {
   public class ItemsController : Controller
   {
+    private readonly ToDoListContext _db;
 
-    [HttpGet("/items")]
+    public ItemsController(ToDoListContext db)
+    {
+      _db = db;
+    }
+
     public ActionResult Index()
     {
-
-      List<Item> allItems = Item.GetAll();
-      return View(allItems);
+      List<Item> model = _db.Items.ToList();
+      return View(model);
     }
+    
+    public ActionResult Create()
+{
+    return View();
+}
 
+[HttpPost]
+public ActionResult Create(Item item)
+{
+    _db.Items.Add(item);
+    _db.SaveChanges();
+    return RedirectToAction("Index");
+}
 
-    [HttpGet("/items/new")]
-    public ActionResult New()
-    {
-      return View();
-    }
-
-    [HttpPost("/items")]
-    public ActionResult Create(string description)
-    {
-      Item myItem = new Item(description);
-      return RedirectToAction("Index");
-    }
-
-    [HttpPost("/items/delete")]
-    public ActionResult DeleteAll()
-    {
-      Item.ClearAll();
-      return View();
-    }
-
-    [HttpGet("/items/{id}")]
-    public ActionResult Show(int id)
-    {
-      Item foundItem = Item.Find(id);
-      return View(foundItem);
-    }
+public ActionResult Details(int id)
+{
+    Item thisItem = _db.Items.FirstOrDefault(item => item.ItemId == id);
+    return View(thisItem);
+}
   }
+
 }
